@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.1 — 2026-05-16
+
+- Fix first-start crash: pre-create `/shared/nginx/conf` and other
+  directories the Seafile bootstrap expects but does not create itself.
+- Move user data symlink from `/shared/seafile-data` to the correct
+  `/shared/seafile/seafile-data` location.
+
 ## 0.1.0 — 2026-05-16
 
 - Initial release

@@ -29,18 +29,36 @@ mkdir -p \
     "${PERSIST}/mariadb" \
     "${PERSIST}/logs"
 
-# Redirect Seafile's /shared into persistent storage so conf + data survive
-mkdir -p /shared
-if [ ! -L /shared/seafile-data ]; then
+# Seafile expects this directory layout under /shared. Create everything
+# up-front so its bootstrap script (which only does `mv`, never `mkdir -p`)
+# can place files where it wants them.
+mkdir -p \
+    /shared \
+    /shared/nginx/conf \
+    /shared/logs/var-log \
+    /shared/seafile/conf \
+    /shared/seafile/ccnet \
+    /shared/seafile/seafile-data \
+    /shared/seafile/seahub-data \
+    /shared/ssl
+
+# Redirect user file storage to /share so it is reachable from other add-ons.
+# Only convert to a symlink on first start (when seafile-data is still empty).
+if [ ! -L /shared/seafile/seafile-data ]; then
     mkdir -p /share/seafile-data
-    # Keep any existing data, then symlink share path
-    [ -d /shared/seafile-data ] && cp -a /shared/seafile-data/. /share/seafile-data/ 2>/dev/null || true
-    rm -rf /shared/seafile-data
-    ln -sfn /share/seafile-data /shared/seafile-data
+    if [ -d /shared/seafile/seafile-data ] && [ -n "$(ls -A /shared/seafile/seafile-data 2>/dev/null)" ]; then
+        cp -a /shared/seafile/seafile-data/. /share/seafile-data/ 2>/dev/null || true
+    fi
+    rm -rf /shared/seafile/seafile-data
+    ln -sfn /share/seafile-data /shared/seafile/seafile-data
 fi
 
-# Redirect logs to persistent storage
-ln -sfn "${PERSIST}/logs" /shared/logs 2>/dev/null || true
+# Persist Seafile logs in /config (logs/var-log is for nginx/syslog files)
+if [ ! -L /shared/logs ] || [ "$(readlink /shared/logs)" != "${PERSIST}/logs" ]; then
+    rm -rf /shared/logs
+    ln -sfn "${PERSIST}/logs" /shared/logs
+    mkdir -p "${PERSIST}/logs/var-log"
+fi
 
 # ── DB root password (generated once, then reused) ────────────────────────
 DB_PASS_FILE="${PERSIST}/.db_root_pass"
