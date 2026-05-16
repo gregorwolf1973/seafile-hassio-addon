@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.5 — 2026-05-16
+
+- Launch Seafile via `my_init` + `enterpoint.sh` instead of calling
+  `start.py` directly. `my_init` is what starts nginx (from
+  `/etc/service/nginx`); bypassing it left port 80 dead even though
+  Seafile itself was running.
+
 ## 0.1.4 — 2026-05-16
 
 - **Breaking layout change:** all Seafile state is now persisted under

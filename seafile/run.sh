@@ -72,6 +72,14 @@ export SEAFILE_SERVER_LETSENCRYPT=false
 export SEAFILE_SERVER_HOSTNAME="${SERVER_HOSTNAME}"
 export TIME_ZONE="${TIME_ZONE}"
 
-# ── Hand off to the official Seafile startup script ───────────────────────
+# ── Hand off to the official Seafile startup chain ────────────────────────
+# The seafile-mc image expects to be launched through `my_init`, which is the
+# only thing that starts nginx (defined in /etc/service/nginx). Bypassing it
+# (running start.py directly) means port 80 stays dead even though Seafile
+# itself runs. Always go through my_init + enterpoint.sh.
 echo "[Seafile] Launching Seafile (hostname: ${SERVER_HOSTNAME}) ..."
-exec /scripts/start.py
+if [ -x /sbin/my_init ]; then
+    exec /sbin/my_init -- /scripts/enterpoint.sh
+else
+    exec /scripts/enterpoint.sh
+fi
