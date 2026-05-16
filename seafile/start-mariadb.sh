@@ -41,13 +41,27 @@ if ! mysqladmin --socket="${SOCKET}" ping --silent 2>/dev/null; then
     exit 1
 fi
 
-# Set / update the root password so Seafile can authenticate with ROOT_PASS
-mysql --socket="${SOCKET}" -u root <<SQL
+# Set / update the root password so Seafile can authenticate with ROOT_PASS.
+# On first start root has no password; on subsequent starts it already does,
+# so try the stored password first and fall back to no-password.
+SQL_SETUP=$(cat <<SQL
 ALTER USER IF EXISTS 'root'@'localhost' IDENTIFIED BY '${ROOT_PASS}';
 CREATE USER IF NOT EXISTS 'root'@'127.0.0.1' IDENTIFIED BY '${ROOT_PASS}';
 ALTER USER 'root'@'127.0.0.1' IDENTIFIED BY '${ROOT_PASS}';
 GRANT ALL PRIVILEGES ON *.* TO 'root'@'127.0.0.1' WITH GRANT OPTION;
 FLUSH PRIVILEGES;
 SQL
+)
+
+if mysql --socket="${SOCKET}" -u root -p"${ROOT_PASS}" -e "SELECT 1" >/dev/null 2>&1; then
+    mysql --socket="${SOCKET}" -u root -p"${ROOT_PASS}" -e "${SQL_SETUP}"
+elif mysql --socket="${SOCKET}" -u root -e "SELECT 1" >/dev/null 2>&1; then
+    mysql --socket="${SOCKET}" -u root -e "${SQL_SETUP}"
+else
+    echo "[MariaDB] ERROR: cannot authenticate as root with stored password" >&2
+    echo "[MariaDB] If you reset /config/seafile/.db_root_pass, also remove" >&2
+    echo "[MariaDB] /config/seafile/mariadb to reinitialise the database." >&2
+    exit 1
+fi
 
 echo "[MariaDB] Root credentials configured."
