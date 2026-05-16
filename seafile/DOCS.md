@@ -28,10 +28,9 @@ Seafile is a self-hosted file sync and sharing platform. This add-on bundles Sea
 | Path | Content |
 |---|---|
 | `/config/seafile/mariadb/` | MariaDB database files |
-| `/config/seafile/logs/` | Seafile & Seahub log files |
-| `/share/seafile-data/` | All user-uploaded files |
+| `/config/seafile/shared/` | Complete Seafile state (conf, ccnet, seafile-data, seahub-data, nginx config) |
 
-User files in `/share/seafile-data/` are accessible from other add-ons (e.g. Simple NAS / Samba) so you can share them over the network.
+The entire Seafile installation lives under `/config/seafile/`, so a complete backup of that folder (plus `mariadb/`) is sufficient to restore the server.
 
 ## Ports
 

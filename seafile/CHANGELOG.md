@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.4 — 2026-05-16
+
+- **Breaking layout change:** all Seafile state is now persisted under
+  `/config/seafile/shared/` (entire `/shared` is a symlink to it).
+- Stop pre-creating `seafile-data`, which made Seafile skip setup and
+  crash on missing `admin.txt` / `/opt/seafile/conf` symlink.
+- Auto-detect and wipe an incomplete previous setup so the next start
+  re-runs `setup-seafile-mysql.py` cleanly.
+- Removed the `/share/seafile-data` symlink for now (was hiding setup
+  bugs); will return as an opt-in option later.
+
 ## 0.1.3 — 2026-05-16
 
 - Pre-create `seahub-data/avatars` and `seahub-data/custom` so the
