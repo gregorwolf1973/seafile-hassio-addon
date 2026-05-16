@@ -1,0 +1,36 @@
+name: "Seafile"
+description: "Self-hosted file sync and sharing — Seafile server with built-in MariaDB"
+version: "0.1.0"
+url: "https://github.com/gregorwolf1973/seafile-hassio-addon"
+slug: "seafile"
+init: false
+arch:
+  - amd64
+  - aarch64
+startup: services
+boot: auto
+ingress: false
+panel_icon: "mdi:file-sync"
+panel_title: "Seafile"
+webui: "http://[HOST]:[PORT:8080]"
+host_network: false
+apparmor: false
+options:
+  admin_email: "admin@example.com"
+  admin_password: "seafile_admin"
+  server_name: "MySeafile"
+  server_hostname: "homeassistant.local:8080"
+  time_zone: "Europe/Berlin"
+schema:
+  admin_email: email
+  admin_password: password
+  server_name: str
+  server_hostname: str
+  time_zone: str
+ports:
+  80/tcp: 8080
+ports_description:
+  80/tcp: "Seafile web interface (Seahub)"
+map:
+  - share:rw
+  - config:rw
