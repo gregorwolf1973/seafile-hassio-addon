@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.0 — 2026-05-16
+
+- New options `collabora_url` and `service_url` enable Collabora
+  Online (CODE) office integration. The add-on patches
+  `seahub_settings.py` on every start with a managed block, so
+  updating the options in HA is enough — no manual file edits.
+- On first boot (before setup has created `seahub_settings.py`) the
+  patch is deferred via a `my_init.d` hook, then seahub is restarted.
+
 ## 0.1.5 — 2026-05-16
 
 - Launch Seafile via `my_init` + `enterpoint.sh` instead of calling

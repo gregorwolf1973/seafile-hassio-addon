@@ -20,6 +20,8 @@ Seafile is a self-hosted file sync and sharing platform. This add-on bundles Sea
 | `server_name` | Display name shown in the Seafile UI | `MySeafile` |
 | `server_hostname` | Hostname (and port) that clients use to reach the server | `homeassistant.local:8080` |
 | `time_zone` | Server time zone | `Europe/Berlin` |
+| `service_url` | Public URL Seafile is reachable at (e.g. `https://seafile.example.com`). Required for Collabora. Leave empty if not using a reverse proxy. | `""` |
+| `collabora_url` | HTTPS base URL of your Collabora Online (CODE) server, e.g. `https://collabora.example.com`. Leave empty to disable office integration. | `""` |
 
 **Important:** Change `admin_password` before exposing the add-on to the internet.
 
@@ -42,6 +44,21 @@ The entire Seafile installation lives under `/config/seafile/`, so a complete ba
 
 Download the official Seafile clients from [https://www.seafile.com/download/](https://www.seafile.com/download/).  
 Configure them with server URL `http://<server_hostname>`.
+
+## Collabora Online Integration
+
+Set `collabora_url` (and ideally `service_url`) in the add-on options and restart. The add-on patches `seahub_settings.py` automatically.
+
+You also need to allow Seafile as a WOPI host inside Collabora itself. In your Collabora HA add-on options, add to the WOPI host allowlist (regex format, escape dots):
+
+```
+homeassistant\.local
+seafile\.example\.com
+```
+
+Both servers must reach each other over **HTTPS**.
+
+After saving the options, restart the Seafile add-on. Office files (`.docx`, `.xlsx`, `.odt`, …) will then open in Collabora directly from Seahub.
 
 ## Troubleshooting
 
