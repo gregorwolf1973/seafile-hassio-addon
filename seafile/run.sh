@@ -40,7 +40,12 @@ mkdir -p \
     /shared/seafile/ccnet \
     /shared/seafile/seafile-data \
     /shared/seafile/seahub-data \
+    /shared/seafile/seahub-data/avatars \
+    /shared/seafile/seahub-data/custom \
     /shared/ssl
+
+# nginx runtime directories (the seafile-mc image doesn't ship them)
+mkdir -p /var/run/nginx /var/lib/nginx /var/log/nginx
 
 # Redirect user file storage to /share so it is reachable from other add-ons.
 # Only convert to a symlink on first start (when seafile-data is still empty).
