@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.1 — 2026-05-16
+
+- **Fix uploads breaking after enabling `service_url`.** v0.2.0
+  silently set `FILE_SERVER_ROOT = '<service_url>/seafhttp'`, which
+  redirected uploads to a URL the browser usually couldn't reach
+  ("Netzwerkfehler"). `FILE_SERVER_ROOT` is now its own option and
+  defaults to empty, letting Seafile auto-detect from the request.
+
 ## 0.2.0 — 2026-05-16
 
 - New options `collabora_url` and `service_url` enable Collabora

@@ -20,7 +20,8 @@ Seafile is a self-hosted file sync and sharing platform. This add-on bundles Sea
 | `server_name` | Display name shown in the Seafile UI | `MySeafile` |
 | `server_hostname` | Hostname (and port) that clients use to reach the server | `homeassistant.local:8080` |
 | `time_zone` | Server time zone | `Europe/Berlin` |
-| `service_url` | Public URL Seafile is reachable at (e.g. `https://seafile.example.com`). Required for Collabora. Leave empty if not using a reverse proxy. | `""` |
+| `service_url` | Public URL Seafile is reachable at (e.g. `https://seafile.example.com`). Used for share links and required for Collabora. Leave empty if not using a reverse proxy. | `""` |
+| `file_server_root` | Public URL of the Seafile fileserver, e.g. `https://seafile.example.com/seafhttp`. Only set this if your reverse proxy publishes `/seafhttp` — wrong values break uploads ("Netzwerkfehler"). | `""` |
 | `collabora_url` | HTTPS base URL of your Collabora Online (CODE) server, e.g. `https://collabora.example.com`. Leave empty to disable office integration. | `""` |
 
 **Important:** Change `admin_password` before exposing the add-on to the internet.

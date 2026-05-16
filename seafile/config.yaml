@@ -1,6 +1,6 @@
 name: "Seafile"
 description: "Self-hosted file sync and sharing — Seafile server with built-in MariaDB"
-version: "0.2.0"
+version: "0.2.1"
 url: "https://github.com/gregorwolf1973/seafile-hassio-addon"
 slug: "seafile"
 init: false
@@ -23,6 +23,7 @@ options:
   time_zone: "Europe/Berlin"
   collabora_url: ""
   service_url: ""
+  file_server_root: ""
 schema:
   admin_email: email
   admin_password: password
@@ -31,6 +32,7 @@ schema:
   time_zone: str
   collabora_url: str?
   service_url: str?
+  file_server_root: str?
 ports:
   80/tcp: 8080
 ports_description:

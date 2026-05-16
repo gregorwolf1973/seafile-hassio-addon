@@ -12,6 +12,7 @@ if command -v bashio &>/dev/null && [ -f /data/options.json ]; then
     TIME_ZONE=$(bashio::config 'time_zone')
     COLLABORA_URL=$(bashio::config 'collabora_url')
     SERVICE_URL=$(bashio::config 'service_url')
+    FILE_SERVER_ROOT=$(bashio::config 'file_server_root')
     bashio::log.info "=== Seafile add-on starting ==="
 else
     ADMIN_EMAIL="${SEAFILE_ADMIN_EMAIL:-admin@example.com}"
@@ -21,6 +22,7 @@ else
     TIME_ZONE="${TIME_ZONE:-Europe/Berlin}"
     COLLABORA_URL="${COLLABORA_URL:-}"
     SERVICE_URL="${SERVICE_URL:-}"
+    FILE_SERVER_ROOT="${FILE_SERVER_ROOT:-}"
     echo "=== Seafile starting (standalone mode) ==="
 fi
 
@@ -94,7 +96,9 @@ apply_seahub_settings() {
         echo "# >>> HA add-on managed block >>>"
         if [ -n "${SERVICE_URL}" ]; then
             echo "SERVICE_URL = '${SERVICE_URL%/}'"
-            echo "FILE_SERVER_ROOT = '${SERVICE_URL%/}/seafhttp'"
+        fi
+        if [ -n "${FILE_SERVER_ROOT}" ]; then
+            echo "FILE_SERVER_ROOT = '${FILE_SERVER_ROOT%/}'"
         fi
         if [ -n "${COLLABORA_URL}" ]; then
             echo "ENABLE_OFFICE_WEB_APP = True"
@@ -118,6 +122,7 @@ if ! apply_seahub_settings; then
 # has finished, then restarts seahub so the new settings take effect.
 export COLLABORA_URL='${COLLABORA_URL}'
 export SERVICE_URL='${SERVICE_URL}'
+export FILE_SERVER_ROOT='${FILE_SERVER_ROOT}'
 
 (
     settings=/shared/seafile/conf/seahub_settings.py
@@ -131,10 +136,8 @@ export SERVICE_URL='${SERVICE_URL}'
     {
         echo ""
         echo "# >>> HA add-on managed block >>>"
-        [ -n "\${SERVICE_URL}" ] && {
-            echo "SERVICE_URL = '\${SERVICE_URL%/}'"
-            echo "FILE_SERVER_ROOT = '\${SERVICE_URL%/}/seafhttp'"
-        }
+        [ -n "\${SERVICE_URL}" ] && echo "SERVICE_URL = '\${SERVICE_URL%/}'"
+        [ -n "\${FILE_SERVER_ROOT}" ] && echo "FILE_SERVER_ROOT = '\${FILE_SERVER_ROOT%/}'"
         [ -n "\${COLLABORA_URL}" ] && {
             echo "ENABLE_OFFICE_WEB_APP = True"
             echo "OFFICE_WEB_APP_BASE_URL = '\${COLLABORA_URL%/}/hosting/discovery'"
