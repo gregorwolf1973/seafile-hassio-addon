@@ -202,37 +202,36 @@ if ! pgrep -x memcached >/dev/null 2>&1; then
         || echo "[memcached] WARNING: failed to start"
 fi
 
-# ── Stream Seafile / Seahub logs to add-on stdout ─────────────────────────
-# Periodically scan known log roots for *.log files and tail every one
-# we find. If tail dies (e.g. log rotation), the outer loop re-discovers
-# files and restarts. New log files written later are picked up on the
-# next rescan cycle.
-(
-    sleep 8
-    echo "[log-stream] scanning for log files ..."
-    while true; do
-        FILES=$(find \
-            /shared \
-            /opt/seafile/logs \
-            /opt/seafile/seafile-server-latest/runtime \
-            /var/log/nginx \
-            /var/log \
-            -maxdepth 5 -type f \( -name "*.log" -o -name "error.log" -o -name "access.log" \) \
-            2>/dev/null | sort -u | tr '\n' ' ')
+# ── Install a runit service that streams Seafile logs to PID 1 ────────────
+# A background subshell forked here is killed/orphaned when we exec my_init.
+# Installing a real runit service under /etc/service/ makes the init system
+# manage and respawn the streamer, and we write directly to /proc/1/fd/1 so
+# the output always lands in the add-on log even if our stdout is rewired.
+mkdir -p /etc/service/log-stream
+cat > /etc/service/log-stream/run <<'STREAM'
+#!/bin/bash
+exec 1>/proc/1/fd/1 2>/proc/1/fd/2
+sleep 6
+echo "[log-stream] scanning for log files ..."
+while true; do
+    FILES=$(find \
+        /shared \
+        /opt/seafile \
+        /var/log \
+        -maxdepth 5 -type f -name "*.log" 2>/dev/null | sort -u | tr '\n' ' ')
 
-        if [ -z "$FILES" ]; then
-            sleep 5
-            continue
-        fi
+    if [ -z "$FILES" ]; then
+        sleep 5
+        continue
+    fi
 
-        echo "[log-stream] following: $FILES"
-        # -F = follow by name, retry on missing. Block until tail exits,
-        # then rescan (covers file rotation and newly-created log files).
-        tail -n 0 -F $FILES 2>&1
-        echo "[log-stream] tail exited, rescanning in 10s ..."
-        sleep 10
-    done
-) &
+    echo "[log-stream] following: $FILES"
+    tail -n 0 -F $FILES
+    echo "[log-stream] tail exited, rescanning in 10s ..."
+    sleep 10
+done
+STREAM
+chmod +x /etc/service/log-stream/run
 
 # ── Hand off to the official Seafile startup chain ────────────────────────
 # The seafile-mc image expects to be launched through `my_init`, which is the

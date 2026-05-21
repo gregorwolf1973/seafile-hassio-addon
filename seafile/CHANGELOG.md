@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.8 — 2026-05-21
+
+- Log streaming reborn as a runit service under `/etc/service/log-stream`.
+  The previous background subshell was being orphaned/killed by my_init
+  so no output reached the add-on log. The runit service is properly
+  supervised and writes to PID 1's stdout via `/proc/1/fd/1`, so the
+  output is guaranteed to appear in HA's add-on log view.
+
 ## 0.2.7 — 2026-05-21
 
 - Log-streaming rewrite: `find` all `*.log` files under `/shared`,

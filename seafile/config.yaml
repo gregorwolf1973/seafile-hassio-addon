@@ -1,6 +1,6 @@
 name: "Seafile"
 description: "Self-hosted file sync and sharing — Seafile server with built-in MariaDB"
-version: "0.2.7"
+version: "0.2.8"
 url: "https://github.com/gregorwolf1973/seafile-hassio-addon"
 slug: "seafile"
 init: false
