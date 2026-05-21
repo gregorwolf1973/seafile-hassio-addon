@@ -189,6 +189,19 @@ HOOK
     chmod +x /etc/my_init.d/99_ha_seahub_settings.sh
 fi
 
+# ── Ensure memcached is running ───────────────────────────────────────────
+# Seahub uses memcached for the login rate-limit counter and other caches.
+# The image's runit service for memcached has been seen failing silently,
+# leaving seahub to throw "ServerDown: 1 keys failed" on every login.
+# Start a daemon explicitly; if the runit-managed one also comes up later
+# it just loses the port-bind race and runit retries silently.
+if ! pgrep -x memcached >/dev/null 2>&1; then
+    echo "[memcached] Starting daemon on 127.0.0.1:11211 ..."
+    memcached -d -u memcache -m 128 -p 11211 -l 127.0.0.1 -P /tmp/memcached.pid 2>/dev/null \
+        || memcached -d -m 128 -p 11211 -l 127.0.0.1 -P /tmp/memcached.pid 2>/dev/null \
+        || echo "[memcached] WARNING: failed to start"
+fi
+
 # ── Stream Seafile / Seahub logs to add-on stdout ─────────────────────────
 # These files don't exist on a fresh install; `tail --retry -F` waits for
 # them to appear and then follows. Each line is prefixed with its filename

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.5 — 2026-05-21
+
+- Fix `ServerDown: 1 keys failed` 500 on login. Memcached (which
+  seahub uses for the login rate-limit counter) was not coming up
+  via the image's runit service. We now start it explicitly from
+  run.sh before handing off to my_init.
+
 ## 0.2.4 — 2026-05-21
 
 - Stream Seafile/Seahub/nginx logs to the add-on log so you no longer

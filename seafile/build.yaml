@@ -6,4 +6,4 @@ labels:
   io.hass.description: "Self-hosted file sync and sharing with built-in MariaDB"
   io.hass.arch: "amd64|aarch64"
   io.hass.type: "addon"
-  io.hass.version: "0.2.4"
+  io.hass.version: "0.2.5"
