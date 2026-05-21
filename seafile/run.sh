@@ -203,32 +203,35 @@ if ! pgrep -x memcached >/dev/null 2>&1; then
 fi
 
 # ── Stream Seafile / Seahub logs to add-on stdout ─────────────────────────
-# Wait for any log file to appear (setup takes a few seconds), then follow
-# all of them. Tail's native "==> file <==" headers make the source clear.
+# Periodically scan known log roots for *.log files and tail every one
+# we find. If tail dies (e.g. log rotation), the outer loop re-discovers
+# files and restarts. New log files written later are picked up on the
+# next rescan cycle.
 (
-    sleep 5
-    LOG_DIRS="/shared/logs /opt/seafile/logs /var/log/nginx"
-    echo "[log-stream] waiting for Seafile to create log files ..."
-    for i in $(seq 1 90); do
-        FOUND=$(ls /shared/logs/*.log 2>/dev/null | head -1)
-        [ -n "$FOUND" ] && break
-        sleep 2
+    sleep 8
+    echo "[log-stream] scanning for log files ..."
+    while true; do
+        FILES=$(find \
+            /shared \
+            /opt/seafile/logs \
+            /opt/seafile/seafile-server-latest/runtime \
+            /var/log/nginx \
+            /var/log \
+            -maxdepth 5 -type f \( -name "*.log" -o -name "error.log" -o -name "access.log" \) \
+            2>/dev/null | sort -u | tr '\n' ' ')
+
+        if [ -z "$FILES" ]; then
+            sleep 5
+            continue
+        fi
+
+        echo "[log-stream] following: $FILES"
+        # -F = follow by name, retry on missing. Block until tail exits,
+        # then rescan (covers file rotation and newly-created log files).
+        tail -n 0 -F $FILES 2>&1
+        echo "[log-stream] tail exited, rescanning in 10s ..."
+        sleep 10
     done
-
-    FILES=""
-    for d in $LOG_DIRS; do
-        for f in "$d"/*.log; do
-            [ -f "$f" ] && FILES="$FILES $f"
-        done
-    done
-
-    if [ -z "$FILES" ]; then
-        echo "[log-stream] no log files found in $LOG_DIRS"
-        exit 0
-    fi
-
-    echo "[log-stream] following:$FILES"
-    exec tail -n 0 -F $FILES 2>&1
 ) &
 
 # ── Hand off to the official Seafile startup chain ────────────────────────

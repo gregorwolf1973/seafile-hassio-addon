@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.7 — 2026-05-21
+
+- Log-streaming rewrite: `find` all `*.log` files under `/shared`,
+  `/opt/seafile`, `/var/log`, retry on rotation, re-scan periodically
+  so new log files written later are picked up too.
+
 ## 0.2.6 — 2026-05-21
 
 - Simplify log streaming: wait for the logs dir to populate, then
