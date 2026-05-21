@@ -203,23 +203,32 @@ if ! pgrep -x memcached >/dev/null 2>&1; then
 fi
 
 # ── Stream Seafile / Seahub logs to add-on stdout ─────────────────────────
-# These files don't exist on a fresh install; `tail --retry -F` waits for
-# them to appear and then follows. Each line is prefixed with its filename
-# so the HA log shows which component spoke.
+# Wait for any log file to appear (setup takes a few seconds), then follow
+# all of them. Tail's native "==> file <==" headers make the source clear.
 (
-    sleep 3
-    exec tail --retry -n0 -F \
-        /shared/logs/seafile.log \
-        /shared/logs/seahub.log \
-        /shared/logs/controller.log \
-        /shared/logs/ccnet.log \
-        /shared/logs/seahub_django_request.log \
-        /shared/logs/onlyoffice.log \
-        /var/log/nginx/error.log \
-        2>/dev/null | awk '
-            /^==> / { file=$2; sub(/^.*\//,"",file); sub(/ <==$/,"",file); next }
-            { print "[" file "] " $0; fflush() }
-        '
+    sleep 5
+    LOG_DIRS="/shared/logs /opt/seafile/logs /var/log/nginx"
+    echo "[log-stream] waiting for Seafile to create log files ..."
+    for i in $(seq 1 90); do
+        FOUND=$(ls /shared/logs/*.log 2>/dev/null | head -1)
+        [ -n "$FOUND" ] && break
+        sleep 2
+    done
+
+    FILES=""
+    for d in $LOG_DIRS; do
+        for f in "$d"/*.log; do
+            [ -f "$f" ] && FILES="$FILES $f"
+        done
+    done
+
+    if [ -z "$FILES" ]; then
+        echo "[log-stream] no log files found in $LOG_DIRS"
+        exit 0
+    fi
+
+    echo "[log-stream] following:$FILES"
+    exec tail -n 0 -F $FILES 2>&1
 ) &
 
 # ── Hand off to the official Seafile startup chain ────────────────────────

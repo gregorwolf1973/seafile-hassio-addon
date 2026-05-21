@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.6 — 2026-05-21
+
+- Simplify log streaming: wait for the logs dir to populate, then
+  follow every `*.log` file found in `/shared/logs`,
+  `/opt/seafile/logs`, and `/var/log/nginx`. The previous awk filter
+  was eating output. Each file's lines now appear under a
+  `==> /shared/logs/seahub.log <==` header.
+
 ## 0.2.5 — 2026-05-21
 
 - Fix `ServerDown: 1 keys failed` 500 on login. Memcached (which
