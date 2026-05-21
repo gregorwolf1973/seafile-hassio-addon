@@ -98,6 +98,22 @@ apply_seahub_settings() {
     {
         echo ""
         echo "# >>> HA add-on managed block >>>"
+        # Override the memcached-based CACHES that setup-seafile-mysql.py
+        # writes by default. The seafile-mc image's memcached service is
+        # broken in this add-on environment (binary not in PATH, hostname
+        # in the default CACHES doesn't resolve), so every Seahub request
+        # would otherwise trigger 30+ failed pylibmc lookups, taking 5-6 s
+        # per page load. FileBasedCache works across gunicorn workers and
+        # needs no daemon.
+        cat <<'PYEOF'
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': '/tmp/seafile-cache',
+        'TIMEOUT': 3600,
+    },
+}
+PYEOF
         if [ -n "${SERVICE_URL}" ]; then
             echo "SERVICE_URL = '${SERVICE_URL%/}'"
             echo "CSRF_TRUSTED_ORIGINS = ['${SERVICE_URL%/}']"
@@ -164,6 +180,15 @@ export FILE_SERVER_ROOT='${FILE_SERVER_ROOT}'
     {
         echo ""
         echo "# >>> HA add-on managed block >>>"
+        cat <<'PYEOF'
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': '/tmp/seafile-cache',
+        'TIMEOUT': 3600,
+    },
+}
+PYEOF
         [ -n "\${SERVICE_URL}" ] && {
             echo "SERVICE_URL = '\${SERVICE_URL%/}'"
             echo "CSRF_TRUSTED_ORIGINS = ['\${SERVICE_URL%/}']"
@@ -195,13 +220,28 @@ fi
 # leaving seahub to throw "ServerDown: 1 keys failed" on every login.
 # Start a daemon explicitly; if the runit-managed one also comes up later
 # it just loses the port-bind race and runit retries silently.
+# Pre-create the file-based cache dir used by the CACHES override above so
+# Seahub (running as the seafile user) can write into it.
+mkdir -p /tmp/seafile-cache
+chmod 0777 /tmp/seafile-cache
+
+# Best-effort memcached startup — not required since CACHES is now file-based,
+# but we try anyway in case anything else in the image depends on it.
+MEMCACHED_BIN=""
+for cand in memcached /usr/bin/memcached /usr/local/bin/memcached /usr/sbin/memcached; do
+    if command -v "$cand" >/dev/null 2>&1 || [ -x "$cand" ]; then
+        MEMCACHED_BIN="$cand"
+        break
+    fi
+done
+
 if ! pgrep -x memcached >/dev/null 2>&1; then
     echo "[memcached] Starting daemon on 127.0.0.1:11211 ..."
-    if ! command -v memcached >/dev/null 2>&1; then
-        echo "[memcached] ERROR: binary not in PATH — runit service will handle it"
-    elif memcached -d -u memcache -m 128 -p 11211 -l 127.0.0.1 -P /tmp/memcached.pid; then
+    if [ -z "$MEMCACHED_BIN" ]; then
+        echo "[memcached] binary not found — CACHES is file-based, this is OK"
+    elif $MEMCACHED_BIN -d -u memcache -m 128 -p 11211 -l 127.0.0.1 -P /tmp/memcached.pid; then
         echo "[memcached] started as memcache user"
-    elif memcached -d -m 128 -p 11211 -l 127.0.0.1 -P /tmp/memcached.pid; then
+    elif $MEMCACHED_BIN -d -m 128 -p 11211 -l 127.0.0.1 -P /tmp/memcached.pid; then
         echo "[memcached] started as root (memcache user unavailable)"
     else
         echo "[memcached] WARNING: explicit start failed; runit service may still bring it up"

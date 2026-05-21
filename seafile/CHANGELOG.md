@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.2.10 — 2026-05-21
+
+- **Fix Seahub slowness (5–6 s per request).** The default `CACHES`
+  config written by `setup-seafile-mysql.py` points at a memcached
+  hostname that doesn't resolve in this container, and the image's
+  memcached binary isn't in `PATH`. Every request was firing 30+
+  `pylibmc.HostLookupError` lookups before timing out. We now
+  override `CACHES` in the managed block to use Django's
+  `filebased.FileBasedCache` at `/tmp/seafile-cache` — no daemon
+  needed, works across gunicorn workers.
+- Pre-create `/tmp/seafile-cache` world-writable so the seafile
+  user can populate it.
+- Search common paths for the `memcached` binary (`/usr/bin`,
+  `/usr/local/bin`, `/usr/sbin`) before giving up.
+
 ## 0.2.9 — 2026-05-21
 
 - Log streamer follows symlinks now (`find -L`) — seafile-mc often
