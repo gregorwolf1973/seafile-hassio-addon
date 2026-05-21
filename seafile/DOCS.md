@@ -23,6 +23,8 @@ Seafile is a self-hosted file sync and sharing platform. This add-on bundles Sea
 | `service_url` | Public URL Seafile is reachable at (e.g. `https://seafile.example.com`). Used for share links and required for Collabora. Leave empty if not using a reverse proxy. | `""` |
 | `file_server_root` | Public URL of the Seafile fileserver, e.g. `https://seafile.example.com/seafhttp`. Only set this if your reverse proxy publishes `/seafhttp` — wrong values break uploads ("Netzwerkfehler"). | `""` |
 | `collabora_url` | HTTPS base URL of your Collabora Online (CODE) server, e.g. `https://collabora.example.com`. Leave empty to disable office integration. | `""` |
+| `verbose_logs` | Enable verbose DEBUG-level Django/Seahub logging streamed to the add-on log. | `false` |
+| `django_debug` | Turn on Django `DEBUG=True`. Shows full tracebacks in browser on errors. **Do not leave on in production** — it leaks settings/paths. | `false` |
 
 **Important:** Change `admin_password` before exposing the add-on to the internet.
 

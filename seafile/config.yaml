@@ -1,6 +1,6 @@
 name: "Seafile"
 description: "Self-hosted file sync and sharing — Seafile server with built-in MariaDB"
-version: "0.2.3"
+version: "0.2.4"
 url: "https://github.com/gregorwolf1973/seafile-hassio-addon"
 slug: "seafile"
 init: false
@@ -24,6 +24,8 @@ options:
   collabora_url: ""
   service_url: ""
   file_server_root: ""
+  verbose_logs: false
+  django_debug: false
 schema:
   admin_email: email
   admin_password: password
@@ -33,6 +35,8 @@ schema:
   collabora_url: str?
   service_url: str?
   file_server_root: str?
+  verbose_logs: bool
+  django_debug: bool
 ports:
   80/tcp: 8080
 ports_description:

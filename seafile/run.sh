@@ -13,6 +13,8 @@ if command -v bashio &>/dev/null && [ -f /data/options.json ]; then
     COLLABORA_URL=$(bashio::config 'collabora_url')
     SERVICE_URL=$(bashio::config 'service_url')
     FILE_SERVER_ROOT=$(bashio::config 'file_server_root')
+    VERBOSE_LOGS=$(bashio::config 'verbose_logs')
+    DJANGO_DEBUG=$(bashio::config 'django_debug')
     bashio::log.info "=== Seafile add-on starting ==="
 else
     ADMIN_EMAIL="${SEAFILE_ADMIN_EMAIL:-admin@example.com}"
@@ -23,6 +25,8 @@ else
     COLLABORA_URL="${COLLABORA_URL:-}"
     SERVICE_URL="${SERVICE_URL:-}"
     FILE_SERVER_ROOT="${FILE_SERVER_ROOT:-}"
+    VERBOSE_LOGS="${VERBOSE_LOGS:-false}"
+    DJANGO_DEBUG="${DJANGO_DEBUG:-false}"
     echo "=== Seafile starting (standalone mode) ==="
 fi
 
@@ -104,6 +108,26 @@ apply_seahub_settings() {
         if [ -n "${FILE_SERVER_ROOT}" ]; then
             echo "FILE_SERVER_ROOT = '${FILE_SERVER_ROOT%/}'"
         fi
+        if [ "${DJANGO_DEBUG}" = "true" ]; then
+            # WARNING: exposes tracebacks to clients. Use only for diagnosis.
+            echo "DEBUG = True"
+        fi
+        if [ "${VERBOSE_LOGS}" = "true" ]; then
+            cat <<'PYEOF'
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {'class': 'logging.StreamHandler'},
+    },
+    'root': {'handlers': ['console'], 'level': 'DEBUG'},
+    'loggers': {
+        'django': {'handlers': ['console'], 'level': 'DEBUG', 'propagate': False},
+        'seahub': {'handlers': ['console'], 'level': 'DEBUG', 'propagate': False},
+    },
+}
+PYEOF
+        fi
         if [ -n "${COLLABORA_URL}" ]; then
             echo "ENABLE_OFFICE_WEB_APP = True"
             echo "OFFICE_WEB_APP_BASE_URL = '${COLLABORA_URL%/}/hosting/discovery'"
@@ -164,6 +188,26 @@ export FILE_SERVER_ROOT='${FILE_SERVER_ROOT}'
 HOOK
     chmod +x /etc/my_init.d/99_ha_seahub_settings.sh
 fi
+
+# ── Stream Seafile / Seahub logs to add-on stdout ─────────────────────────
+# These files don't exist on a fresh install; `tail --retry -F` waits for
+# them to appear and then follows. Each line is prefixed with its filename
+# so the HA log shows which component spoke.
+(
+    sleep 3
+    exec tail --retry -n0 -F \
+        /shared/logs/seafile.log \
+        /shared/logs/seahub.log \
+        /shared/logs/controller.log \
+        /shared/logs/ccnet.log \
+        /shared/logs/seahub_django_request.log \
+        /shared/logs/onlyoffice.log \
+        /var/log/nginx/error.log \
+        2>/dev/null | awk '
+            /^==> / { file=$2; sub(/^.*\//,"",file); sub(/ <==$/,"",file); next }
+            { print "[" file "] " $0; fflush() }
+        '
+) &
 
 # ── Hand off to the official Seafile startup chain ────────────────────────
 # The seafile-mc image expects to be launched through `my_init`, which is the

@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.4 — 2026-05-21
+
+- Stream Seafile/Seahub/nginx logs to the add-on log so you no longer
+  need to dig through `/config/seafile/shared/logs/`. Each line is
+  prefixed with `[seahub.log]`, `[seafile.log]`, etc.
+- New `verbose_logs` option enables DEBUG-level Django/Seahub logging.
+- New `django_debug` option turns on `DEBUG = True` for diagnosing
+  500 errors (**off by default** — leaks information).
+
 ## 0.2.3 — 2026-05-16
 
 - Drastically lower MariaDB memory footprint
