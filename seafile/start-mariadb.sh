@@ -14,7 +14,10 @@ if [ ! -d "${DATADIR}/mysql" ]; then
         > /tmp/mysql_init.log 2>&1
 fi
 
-# Start the daemon in the background
+# Start the daemon in the background.
+# Memory tuning: Seafile only needs a small DB. The defaults reserve ~400MB
+# for InnoDB; the values below cap MariaDB at ~80MB resident on a fresh
+# install, leaving more headroom for Seahub/Seafile/nginx on small HA hosts.
 echo "[MariaDB] Starting daemon ..."
 mysqld \
     --user=mysql \
@@ -23,6 +26,14 @@ mysqld \
     --bind-address=127.0.0.1 \
     --port=3306 \
     --skip-networking=OFF \
+    --innodb-buffer-pool-size=48M \
+    --innodb-log-file-size=16M \
+    --innodb-log-buffer-size=4M \
+    --key-buffer-size=8M \
+    --max-connections=50 \
+    --table-open-cache=64 \
+    --performance-schema=OFF \
+    --skip-log-bin \
     > /var/log/mariadb.log 2>&1 &
 
 # Wait until the socket is ready (up to 60 s)

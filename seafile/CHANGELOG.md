@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.3 — 2026-05-16
+
+- Drastically lower MariaDB memory footprint
+  (innodb-buffer-pool-size 48M, performance-schema off, no binlog,
+  smaller caches). Saves roughly 300 MB on idle systems — important
+  for HA installations that already run many add-ons.
+
 ## 0.2.2 — 2026-05-16
 
 - Auto-write `CSRF_TRUSTED_ORIGINS` and `SECURE_PROXY_SSL_HEADER`
