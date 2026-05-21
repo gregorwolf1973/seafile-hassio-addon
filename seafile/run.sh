@@ -96,6 +96,10 @@ apply_seahub_settings() {
         echo "# >>> HA add-on managed block >>>"
         if [ -n "${SERVICE_URL}" ]; then
             echo "SERVICE_URL = '${SERVICE_URL%/}'"
+            echo "CSRF_TRUSTED_ORIGINS = ['${SERVICE_URL%/}']"
+            # Reverse-proxy terminates TLS; trust the X-Forwarded-Proto header
+            # so Django/Seahub generate https:// URLs and accept the CSRF token.
+            echo "SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')"
         fi
         if [ -n "${FILE_SERVER_ROOT}" ]; then
             echo "FILE_SERVER_ROOT = '${FILE_SERVER_ROOT%/}'"
@@ -136,7 +140,11 @@ export FILE_SERVER_ROOT='${FILE_SERVER_ROOT}'
     {
         echo ""
         echo "# >>> HA add-on managed block >>>"
-        [ -n "\${SERVICE_URL}" ] && echo "SERVICE_URL = '\${SERVICE_URL%/}'"
+        [ -n "\${SERVICE_URL}" ] && {
+            echo "SERVICE_URL = '\${SERVICE_URL%/}'"
+            echo "CSRF_TRUSTED_ORIGINS = ['\${SERVICE_URL%/}']"
+            echo "SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')"
+        }
         [ -n "\${FILE_SERVER_ROOT}" ] && echo "FILE_SERVER_ROOT = '\${FILE_SERVER_ROOT%/}'"
         [ -n "\${COLLABORA_URL}" ] && {
             echo "ENABLE_OFFICE_WEB_APP = True"

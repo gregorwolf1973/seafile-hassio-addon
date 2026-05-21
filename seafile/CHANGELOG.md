@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.2 — 2026-05-16
+
+- Auto-write `CSRF_TRUSTED_ORIGINS` and `SECURE_PROXY_SSL_HEADER`
+  to `seahub_settings.py` when `service_url` is set, fixing
+  "CSRF-Verifizierung fehlgeschlagen (403)" behind HTTPS proxies.
+
 ## 0.2.1 — 2026-05-16
 
 - **Fix uploads breaking after enabling `service_url`.** v0.2.0
