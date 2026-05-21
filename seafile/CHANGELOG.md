@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.9 — 2026-05-21
+
+- Log streamer follows symlinks now (`find -L`) — seafile-mc often
+  symlinks `/opt/seafile/logs` to `/shared/logs` and the previous
+  find missed it. Adds one-shot startup diagnostics dumping `ls` of
+  candidate log directories so we can see where they live.
+- Bumped InnoDB buffer pool back to 128M — 48M was hurting query
+  performance for browsing libraries.
+- Memcached startup now logs the actual failure reason instead of
+  swallowing stderr.
+
 ## 0.2.8 — 2026-05-21
 
 - Log streaming reborn as a runit service under `/etc/service/log-stream`.

@@ -197,9 +197,15 @@ fi
 # it just loses the port-bind race and runit retries silently.
 if ! pgrep -x memcached >/dev/null 2>&1; then
     echo "[memcached] Starting daemon on 127.0.0.1:11211 ..."
-    memcached -d -u memcache -m 128 -p 11211 -l 127.0.0.1 -P /tmp/memcached.pid 2>/dev/null \
-        || memcached -d -m 128 -p 11211 -l 127.0.0.1 -P /tmp/memcached.pid 2>/dev/null \
-        || echo "[memcached] WARNING: failed to start"
+    if ! command -v memcached >/dev/null 2>&1; then
+        echo "[memcached] ERROR: binary not in PATH — runit service will handle it"
+    elif memcached -d -u memcache -m 128 -p 11211 -l 127.0.0.1 -P /tmp/memcached.pid; then
+        echo "[memcached] started as memcache user"
+    elif memcached -d -m 128 -p 11211 -l 127.0.0.1 -P /tmp/memcached.pid; then
+        echo "[memcached] started as root (memcache user unavailable)"
+    else
+        echo "[memcached] WARNING: explicit start failed; runit service may still bring it up"
+    fi
 fi
 
 # ── Install a runit service that streams Seafile logs to PID 1 ────────────
@@ -213,12 +219,26 @@ cat > /etc/service/log-stream/run <<'STREAM'
 exec 1>/proc/1/fd/1 2>/proc/1/fd/2
 sleep 6
 echo "[log-stream] scanning for log files ..."
+
+# One-shot diagnostic so we know where seafile actually writes logs.
+echo "[log-stream] diag: ls /shared"
+ls -la /shared 2>&1 | sed 's/^/[log-stream]   /'
+echo "[log-stream] diag: ls /shared/logs"
+ls -la /shared/logs 2>&1 | sed 's/^/[log-stream]   /'
+echo "[log-stream] diag: ls /opt/seafile"
+ls -la /opt/seafile 2>&1 | sed 's/^/[log-stream]   /'
+echo "[log-stream] diag: ls /opt/seafile/logs"
+ls -la /opt/seafile/logs 2>&1 | sed 's/^/[log-stream]   /'
+echo "[log-stream] diag: find -name '*.log'"
+find -L /shared /opt/seafile /var/log -type f -name "*.log" 2>/dev/null | sed 's/^/[log-stream]   /'
+
 while true; do
-    FILES=$(find \
+    # Follow symlinks (-L); seafile-mc symlinks /opt/seafile/logs -> /shared/logs.
+    FILES=$(find -L \
         /shared \
         /opt/seafile \
         /var/log \
-        -maxdepth 5 -type f -name "*.log" 2>/dev/null | sort -u | tr '\n' ' ')
+        -type f -name "*.log" 2>/dev/null | sort -u | tr '\n' ' ')
 
     if [ -z "$FILES" ]; then
         sleep 5

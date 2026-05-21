@@ -26,7 +26,7 @@ mysqld \
     --bind-address=127.0.0.1 \
     --port=3306 \
     --skip-networking=OFF \
-    --innodb-buffer-pool-size=48M \
+    --innodb-buffer-pool-size=128M \
     --innodb-log-file-size=16M \
     --innodb-log-buffer-size=4M \
     --key-buffer-size=8M \
