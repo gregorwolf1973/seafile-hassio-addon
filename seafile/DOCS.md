@@ -1,5 +1,7 @@
 # Seafile Add-on Documentation
 
+[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/gregorwolf1973)
+
 ## Overview
 
 Seafile is a self-hosted file sync and sharing platform. This add-on bundles Seafile server (v11), Seahub (the web UI) and an embedded MariaDB database so no external database is needed.
