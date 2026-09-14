@@ -4,7 +4,7 @@
 
 ## Overview
 
-Seafile is a self-hosted file sync and sharing platform. This add-on bundles Seafile server (v11), Seahub (the web UI) and an embedded MariaDB database so no external database is needed.
+Seafile is a self-hosted file sync and sharing platform. This add-on builds on the current Seafile server image `seafileltd/seafile-mc:latest` and bundles the Seafile server, Seahub (the web UI) and an embedded MariaDB database, so no external database is needed.
 
 ## First-time Setup
 
