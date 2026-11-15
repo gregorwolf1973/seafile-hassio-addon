@@ -1,5 +1,5 @@
-ARG BUILD_FROM
-FROM seafileltd/seafile-mc:latest
+ARG BUILD_FROM=seafileltd/seafile-mc:12.0.14
+FROM ${BUILD_FROM}
 
 # Install MariaDB server and helper tools
 RUN apt-get update && apt-get install -y --no-install-recommends \

@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.11 — 2026-11-15
+
+- **Seafile image pinned to `12.0.14`.** The add-on used
+  `seafileltd/seafile-mc:latest`, which Seafile stopped updating in
+  March 2025 (12.0.11). Pinning to the last 12.0 release brings the
+  remaining 12.0 fixes and makes future updates visible as add-on
+  updates. Seafile 13/14 change the setup substantially (new
+  configuration, Redis instead of memcached) and need a migration, so
+  they are not included yet.
+
 ## 0.2.10 — 2026-05-21
 
 - **Fix Seahub slowness (5–6 s per request).** The default `CACHES`

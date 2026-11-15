@@ -1,9 +1,9 @@
 build_from:
-  amd64: seafileltd/seafile-mc:latest
-  aarch64: seafileltd/seafile-mc:latest
+  amd64: seafileltd/seafile-mc:12.0.14
+  aarch64: seafileltd/seafile-mc:12.0.14
 labels:
   io.hass.name: "Seafile"
   io.hass.description: "Self-hosted file sync and sharing with built-in MariaDB"
   io.hass.arch: "amd64|aarch64"
   io.hass.type: "addon"
-  io.hass.version: "0.2.10"
+  io.hass.version: "0.2.11"
